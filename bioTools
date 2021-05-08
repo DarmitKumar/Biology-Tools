@@ -1,0 +1,70 @@
+import webbrowser
+
+
+def formata(nome_ficheiro: str, imprime=False) -> str:
+    """
+    remove símbolos, espaços e parágrafos desnecessários
+
+    Se imprime=True então também imprime as alterações no ficheiro, default=False
+
+
+    :param nome_ficheiro:
+    :param imprime:
+    :return:
+    """
+
+    with open(nome_ficheiro, 'r') as f:  # abre o ficheiro
+        txt = f.readlines()
+    primeiro = True
+    txtf = ''
+    for linha in txt:
+        if linha.startswith('>') and primeiro:
+            primeiro = False
+            txtf += str(linha)
+        elif linha.startswith('>') and not primeiro:
+            txtf += str(linha.replace('>', '\n>'))
+        else:
+            txtf += str(linha.strip('\n'))
+
+    for letra in txtf:
+        if not letra.isdigit() and not letra.isalpha() and letra != '>' and not letra.isspace():
+            txtf = txtf.replace(letra, '_')
+        txtf = txtf.replace(' ', '_')
+
+    if imprime:
+        with open(nome_ficheiro, 'w') as g:
+            g.write(txtf)
+    return txtf
+
+
+def accesser_re(nome_ficheiro: str) -> str:
+    """
+    Analisa o ficheiro e retorna uma lista de accesser numbers das sequências no formato str
+
+    :param nome_ficheiro:
+    :return:
+    """
+
+    with open(nome_ficheiro, 'r', encoding='utf-8') as f:
+        f = f.readlines()
+    lista = []
+    for linha in f:
+        linha = linha.split()
+        lista.append(linha[0])
+    lista = ', '.join(lista)
+    return lista
+
+
+def ncbi_search(string1: str, string2: str):
+    """
+    recebe dois termos e faz a pesquisa utilizando o operador AND na base de dados NCBI
+
+    Abre o resultado na página do browser
+
+    :param string1:
+    :param string2:
+    :return:
+    """
+
+    url = 'https://www.ncbi.nlm.nih.gov/search/all/?term=' + string1 + '+and+' + string2
+    webbrowser.open_new_tab(url)
