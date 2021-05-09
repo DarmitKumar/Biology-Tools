@@ -54,7 +54,8 @@ def nomes(nome_ficheiro: str, string=True) -> str:
     lista = []
     for linha in f:
         linha = linha.split()
-        lista.append(linha[0])
+        if linha[0].startswith('>'):
+            lista.append(linha[0])
     if string:
         lista = ', '.join(lista)
     return lista
