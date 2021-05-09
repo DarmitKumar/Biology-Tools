@@ -37,11 +37,15 @@ def formata(nome_ficheiro: str, imprime=False) -> str:
     return txtf
 
 
-def accesser_re(nome_ficheiro: str) -> str:
+def nomes(nome_ficheiro: str, string=True) -> str:
     """
-    Analisa o ficheiro e retorna uma lista de accesser numbers das sequências no formato str
+    Analisa o ficheiro e retorna uma lista com o nome das sequências, por default, no formato str
+
+    Se string=False, então retorna no formato lista
+
 
     :param nome_ficheiro:
+    :param string:
     :return:
     """
 
@@ -51,7 +55,8 @@ def accesser_re(nome_ficheiro: str) -> str:
     for linha in f:
         linha = linha.split()
         lista.append(linha[0])
-    lista = ', '.join(lista)
+    if string:
+        lista = ', '.join(lista)
     return lista
 
 
@@ -68,3 +73,33 @@ def ncbi_search(string1: str, string2: str):
 
     url = 'https://www.ncbi.nlm.nih.gov/search/all/?term=' + string1 + '+and+' + string2
     webbrowser.open_new_tab(url)
+    
+    
+    def accesser_re(nome_ficheiro: str, delimitador='_', num_campos=3) -> list:
+    """
+    retorna lista de accesser number para o nome de cada sequência do ficheiro no formato de uma lista
+
+
+    :param nome_ficheiro:
+    :param delimitador:
+    :param num_campos:
+    :return:
+    """
+    lista_nomes = nomes(nome_ficheiro, False)
+    lista_accesser=[]
+    accesser = ''
+    campos_vistos = 0
+    for entrada in lista_nomes:
+        for caracter in entrada:
+            if caracter != delimitador:
+                accesser += caracter
+            else:
+                campos_vistos += 1
+                if campos_vistos == num_campos:
+                    break
+                else:
+                    accesser += caracter
+        lista_accesser.append(accesser)
+        accesser = ''
+        campos_vistos = 0
+    return lista_accesser
