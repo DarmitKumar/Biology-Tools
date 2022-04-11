@@ -39,8 +39,6 @@ def fasta2string(nome_ficheiro: str, header_f=False, imprime=False) -> str:
 def fasta2list(nome_ficheiro: str):
     """
     Lê múltiplas sequências de ficheiros fasta para uma única lista
-    Se formatar = True remove símbolos, espaços e parágrafos desnecessários
-    Se imprime=True então também imprime as alterações no ficheiro, default=False
     """
     return fasta2string(nome_ficheiro).splitlines()
 
