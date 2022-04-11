@@ -1,0 +1,377 @@
+"""
+The functions on this file were either developed by me or on the Algorithms for Bioinformatics course 
+provided by the Faculty of Sciences at the University pf Porto lectured by Dr. Pedro Ferreira
+"""
+
+def fasta2string(nome_ficheiro: str, header_f=False, imprime=False) -> str:
+    """
+    Lê múltiplas sequências de ficheiros fasta para uma única string
+    Se header_F=True remove caracteres desnecessários do dos headers
+    Se imprime=True então também imprime as alterações no ficheiro, default=False
+    """
+
+    with open(nome_ficheiro, 'r') as f:  # abre o ficheiro
+        txt = f.readlines()
+    primeiro = True
+    txtf = ''
+    for linha in txt:
+        if linha.startswith('>') and primeiro:
+            primeiro = False
+            txtf += str(linha)
+        elif linha.startswith('>') and not primeiro:
+            txtf += str(linha.replace('>', '\n>'))
+        else:
+            txtf += str(linha.strip('\n'))
+
+    if header_f:
+        for letra in txtf:
+            if not letra.isdigit() and not letra.isalpha() and letra != '>' and not letra.isspace():
+                txtf = txtf.replace(letra, '_')
+            txtf = txtf.replace(' ', '_')
+
+    if imprime:
+        with open(nome_ficheiro, 'w') as g:
+            g.write(txtf)
+    return txtf
+
+
+def fasta2list(nome_ficheiro: str):
+    """
+    Lê múltiplas sequências de ficheiros fasta para uma única lista
+    Se formatar = True remove símbolos, espaços e parágrafos desnecessários
+    Se imprime=True então também imprime as alterações no ficheiro, default=False
+    """
+    return fasta2string(nome_ficheiro).splitlines()
+
+
+def read_seq_from_file(filename):
+    """ Reads a sequence from a multi-line text file. Ignores sequence header if present. """
+    with open(filename, "r") as file:
+        lines = file.readlines()
+        sequence = ""
+        for line in lines:
+            if not line.startswith('>'):
+                sequence += line.replace("\n", "")
+    return sequence
+
+
+def headers_from_fasta(nome_ficheiro: str, string=True, only_accesser=True) -> str:
+    """
+    Analisa o ficheiro e retorna uma lista com o nome das sequências, por default, no formato str
+
+    Se string=False, então retorna no formato lista
+    """
+
+    with open(nome_ficheiro, 'r', encoding='utf-8') as f:
+        f = f.readlines()
+    lista = []
+    for linha in f:
+        if linha.startswith('>'):
+            linha = linha.split()
+            if only_accesser:
+                lista.append(linha[0])
+            else:
+                lista.append(linha)
+    if string:
+        lista = ', '.join(lista)
+    return lista
+
+
+def header_campos(nome_ficheiro: str, delimitador='_', num_campos=3) -> list:
+    """
+    retorna lista de accesser number para o nome de cada sequência do ficheiro no formato de uma lista
+    """
+    lista_nomes = headers_from_fasta(nome_ficheiro, False, False)
+    lista_accesser = []
+    accesser = ''
+    campos_vistos = 0
+    for entrada in lista_nomes:
+        for caracter in entrada:
+            if caracter != delimitador:
+                accesser += caracter
+            else:
+                campos_vistos += 1
+                if campos_vistos == num_campos:
+                    break
+                else:
+                    accesser += caracter
+        accesser = accesser.replace('>', '')
+        lista_accesser.append(accesser)
+        accesser = ''
+        campos_vistos = 0
+    return lista_accesser
+
+
+def write_seq_to_file(seq, filename):
+    """ Writes a sequence to file. """
+    with open(filename, 'w') as f:
+        f.write(seq)
+
+
+def read_genetic_code_from_file(filename):
+    """ Reads the genetic code to a dictionary from a multi-line text file. """
+    with open(filename, 'r') as f:
+        file = f.read()
+    file = file.replace('"', '').splitlines()
+    dicio = {}
+    for entrada in file:
+        item = entrada.split()
+        dicio[item[0]] = item[1]
+    return dicio
+
+
+def validate_dna(dna_seq):
+    """ Checks if DNA sequence is valid. Returns True is sequence is valid, or False otherwise. """
+    seqm = dna_seq.upper()
+    valid = seqm.count("A") + seqm.count("C") + seqm.count("G") + seqm.count("T")
+    if valid == len(seqm):
+        return True
+    else:
+        return False
+
+
+def frequency(seq):
+    """ Calculates the frequency of each symbol in the sequence. Returns a dictionary. """
+    dic = {}
+    for s in seq.upper():
+        if s in dic:
+            dic[s] += 1
+        else:
+            dic[s] = 1
+    return dic
+
+
+def gc_content(dna_seq):
+    """ Returns the percentage of G and C nucleotides in a DNA sequence. """
+    gc_count = 0
+    for s in dna_seq:
+        if s in "GCgc":
+            gc_count += 1
+    return gc_count / len(dna_seq)
+
+
+def gc_content_subseq(dna_seq, k=100):
+    """ Returns GC content of non-overlapping sub-sequences of size k. """
+    # complete
+    # ...
+
+
+def transcription(dna_seq):
+    """ Function that computes the RNA corresponding to the transcription of the DNA sequence provided. """
+    assert validate_dna(dna_seq), "Invalid DNA sequence"
+    return dna_seq.upper().replace("T", "U")
+
+
+def reverse_complement(dna_seq):
+    """ Computes the reverse complement of the inputted DNA sequence. """
+    assert validate_dna(dna_seq), "Invalid DNA sequence"
+    comp_rev = ""
+    dicio = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
+    for letra in dna_seq:
+        comp_rev += dicio[letra]
+    return comp_rev[::-1]
+
+
+def translate_codon(cod):
+    """Translates a codon into an aminoacid using an internal dictionary with the standard genetic code."""
+    tc = {"GCT": "A", "GCC": "A", "GCA": "A", "GCG": "A",
+          "TGT": "C", "TGC": "C", "GAT": "D", "GAC": "D",
+          "GAA": "E", "GAG": "E", "TTT": "F", "TTC": "F",
+          "GGT": "G", "GGC": "G", "GGA": "G", "GGG": "G",
+          "CAT": "H", "CAC": "H", "ATA": "I", "ATT": "I",
+          "ATC": "I", "AAA": "K", "AAG": "K", "TTA": "L",
+          "TTG": "L", "CTT": "L", "CTC": "L", "CTA": "L",
+          "CTG": "L", "ATG": "M", "AAT": "N", "AAC": "N",
+          "CCT": "P", "CCC": "P", "CCA": "P", "CCG": "P",
+          "CAA": "Q", "CAG": "Q", "CGT": "R", "CGC": "R",
+          "CGA": "R", "CGG": "R", "AGA": "R", "AGG": "R",
+          "TCT": "S", "TCC": "S", "TCA": "S", "TCG": "S",
+          "AGT": "S", "AGC": "S", "ACT": "T", "ACC": "T",
+          "ACA": "T", "ACG": "T", "GTT": "V", "GTC": "V",
+          "GTA": "V", "GTG": "V", "TGG": "W", "TAT": "Y",
+          "TAC": "Y", "TAA": "_", "TAG": "_", "TGA": "_"}
+    if cod in tc:
+        return tc[cod]
+    else:
+        return None
+
+
+def translate_seq(dna_seq, ini_pos=0):
+    """ Translates a DNA sequence into an aminoacid sequence. """
+    assert validate_dna(dna_seq), "Invalid DNA sequence"
+    seqm = dna_seq.upper()
+    seq_aa = ""
+    for i in range(ini_pos, len(seqm) - 3 + 1, 3):
+        codon = dna_seq[i:i + 3]
+        seq_aa += translate_codon(codon)
+    return seq_aa
+
+
+def codon_usage(dna_seq, aa):
+    """Provides the frequency of each codon encoding a given aminoacid, in a DNA sequence ."""
+    assert validate_dna(dna_seq), "Invalid DNA sequence"
+    seqm = dna_seq.upper()
+    dic = {}
+    total = 0
+    for i in range(0, len(seqm) - 2, 3):
+        cod = seqm[i:i + 3]
+        if translate_codon(cod) == aa:
+            if cod in dic:
+                dic[cod] += 1
+            else:
+                dic[cod] = 1
+            total += 1
+    if total > 0:
+        for k in dic:
+            dic[k] /= total
+    return dic
+
+
+def reading_frames(dna_seq):
+    """Computes the six reading frames of a DNA sequence (including the reverse complement)."""
+    assert validate_dna(dna_seq), "Invalid DNA sequence"
+    res = [translate_seq(dna_seq, 0), translate_seq(dna_seq, 1), translate_seq(dna_seq, 2)]
+    rc = reverse_complement(dna_seq)
+    res.append(translate_seq(rc, 0))
+    res.append(translate_seq(rc, 1))
+    res.append(translate_seq(rc, 2))
+    return res
+
+
+def all_proteins_rf(aa_seq):
+    """Computes all posible proteins in an aminoacid sequence."""
+    aa_seq = aa_seq.upper()
+    current_prot = []
+    proteins = []
+    for aa in aa_seq:
+        if aa == "_":
+            if current_prot:
+                for p in current_prot:
+                    proteins.append(p)
+                current_prot = []
+        else:
+            if aa == "M":
+                current_prot.append("")
+            for i in range(len(current_prot)):
+                current_prot[i] += aa
+    return proteins
+
+
+def all_orfs(dna_seq):
+    """Computes all possible proteins for all open reading frames."""
+    assert validate_dna(dna_seq), "Invalid DNA sequence"
+    res = []
+    rfs = reading_frames(dna_seq)
+    for rf in rfs:
+        lst_prots = all_proteins_rf(rf)
+        for prot in lst_prots:
+            res.append(prot)
+    return res
+
+
+def all_orfs_ord(dna_seq, minsize=0):
+    """Computes all possible proteins for all ORFs. Returns ordered list of proteins with minimum size."""
+    assert validate_dna(dna_seq), "Invalid DNA sequence"
+    rfs = reading_frames(dna_seq)
+    res = []
+    for rf in rfs:
+        lst_prots = all_proteins_rf(rf)
+        for prot in lst_prots:
+            if len(prot) > minsize:
+                insert_prot_ord(prot, res)
+    return res
+
+
+def insert_prot_ord(prot, list_prots):
+    """inserts prot in list_prots in a sorted way"""
+    i = 0
+    while i < len(list_prots) and len(prot) < len(list_prots[i]):
+        i += 1
+    list_prots.insert(i, prot)
+
+
+def test_frequency():
+    seq_aa = input("Protein sequence:")
+    freq_aa = frequency(seq_aa)
+    list_f = sorted(freq_aa.items(), key=lambda x: x[1], reverse=True)
+    for (k, v) in list_f:
+        print("Aminoacid:", k, ":", v)
+
+
+def test_all():
+    seq = input("Insert DNA sequence:")
+    if validate_dna(seq):
+        print("Valid sequence")
+        print("Transcription: ", transcription(seq))
+        print("Reverse complement:", reverse_complement(seq))
+        print("GC content (global):", gc_content(seq))
+        print("Direct translation:", translate_seq(seq))
+        print("All proteins in ORFs (decreasing size): ", all_orfs_ord(seq))
+    else:
+        print("DNA sequence is not valid")
+
+
+def test_files():
+    fname = input("Insert input filename:")
+    seq = read_seq_from_file(fname)
+    if validate_dna(seq):
+        print("Valid sequence")
+        print("Transcription: ", transcription(seq))
+        print("Reverse complement:", reverse_complement(seq))
+        print("GC content (global):", gc_content(seq))
+        print("Direct translation:", translate_seq(seq))
+        orfs = all_orfs_ord(seq)
+        i = 1
+        for orf in orfs:
+            write_seq_to_file(orf, "orf-" + str(i) + ".txt")
+            i += 1
+    else:
+        print("DNA sequence is not valid")
+
+
+def test_sequence_from_file(filename):
+    seq = read_seq_from_file(filename)
+    # Validation
+    assert validate_dna(seq), 'The input file does not contain a valid sequence'
+    # Transcription
+    print(transcription(seq))
+    # Reverse Complement
+    print(reverse_complement(seq))
+    # Calculation of GC-content
+    print(gc_content(seq))
+    # Direct Translation
+    print(translate_seq(seq))
+
+
+def header(filename):
+    return all_orfs_ord(read_seq_from_file(filename))[1]
+
+
+def n_orfs_on_seq(filename):
+    seqs = reading_frames(read_seq_from_file(filename))
+    dicio = {}
+    ref = ['+1', '+2', '+3', '-1', '-2', '-3']
+    for indice, seq in enumerate(seqs):
+        dicio[ref[indice]] = len(all_proteins_rf(seq))
+    return dicio
+
+
+def read_fasta_2dictionary():
+    with open('PS00727.fasta') as f:
+        file = f.readlines()
+    dicio = {}
+    seq = ''
+    start = True
+    for line in file:
+        if line[0] == '>':
+            if start:
+                identifier = line.split(' ')[0]
+                start = False
+            else:
+                seq = ''.join(seq.splitlines())
+                dicio[identifier] = seq
+                identifier = line.split(' ')[0]
+                seq = ''
+        else:
+            seq += line
+    return dicio
