@@ -1,6 +1,7 @@
 """
-The functions on this file were either developed by me or on the Algorithms for Bioinformatics course 
-provided by the Faculty of Sciences at the University pf Porto lectured by Dr. Pedro Ferreira
+The functions on this file were either developed on the Algorithms for Bioinformatics course 
+provided by the Faculty of Sciences at the University of Porto lectured by Dr. Pedro Ferreira
+or by me independently
 """
 
 def fasta2string(nome_ficheiro: str, header_f=False, imprime=False) -> str:
